@@ -4,11 +4,12 @@ import sys
 import re
 import argparse
 
-def str_extract_directory(dir, suffix, all , path):
+def str_extract_directory(dir, suffix, all, path):
     '''
     Browse recursively goes through all the files in a hierarchy and apply str_extract_files on every files
     Return all the literal strings (surrounded by " or ’) that these files contain.
     '''
+    pattern = re.compile(r'(["\'])(.*?)(\1)')
     for pathdir, _, files in os.walk(dir):
         for file in files:
             # Test if the options suffix is asked and check if the file match with this suffix
@@ -17,22 +18,22 @@ def str_extract_directory(dir, suffix, all , path):
             #Test if the options -a (--all) is asked and if the current file is hidden or not
             if not(all) and (file.startswith(".")):
                 continue
-            path_file = os.path.join(pathdir, file)
-            str_extract_files(path_file, path)
+            file_path = os.path.join(pathdir, file)
+            str_extract_files(file_path, path, pattern)
 
-def str_extract_files(path_file , path):
+def str_extract_files(file_path, path, pattern):
        '''
        Extract as output all the literal strings in the file 
        '''
-       pattern = re.compile(r'(["\'])(.*?)(\1)')
-       with open(path_file, 'r', encoding='utf-8') as file:
+
+       with open(file_path, 'r', encoding='utf-8') as file:
                 content = file.read()
                 string_found = pattern.findall(content)
-                for match in string_found:
-                    line = match[0] + match[1] + match[2]
+                for matches in string_found:
+                    line = matches[0] + matches[1] + matches[2]
                     if (path):
                     #Displaying extracted string literals
-                        print(f"{os.path.abspath(path_file)} \t {line}")
+                        print(f"{os.path.abspath(file_path)} \t {line}")
                     else:
                          print(f"{line}")
                        
