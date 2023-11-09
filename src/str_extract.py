@@ -16,7 +16,7 @@ def str_extract_directory(dir, suffix, all, path):
             if suffix and not(file.endswith(suffix)):  
                 continue
             #Test if the options -a (--all) is asked and if the current file is hidden or not
-            if not(all) and (file.startswith(".")):
+            if not all and file.startswith("."):
                 continue
             file_path = os.path.join(pathdir, file)
             str_extract_files(file_path, path, pattern)
@@ -26,16 +26,16 @@ def str_extract_files(file_path, path, pattern):
        Extract as output all the literal strings in the file 
        '''
 
-       with open(file_path, 'r', encoding='utf-8') as file:
-                content = file.read()
-                string_found = pattern.findall(content)
-                for matches in string_found:
-                    line = matches[0] + matches[1] + matches[2]
-                    if (path):
-                    #Displaying extracted string literals
-                        print(f"{os.path.abspath(file_path)} \t {line}")
-                    else:
-                         print(f"{line}")
+       with open(file_path, 'r', encoding='utf-8') as lines:
+                for line in lines:
+                    string_found = pattern.findall(line)
+                    for matches in string_found:
+                        string_founded = matches[0] + matches[1] + matches[2]
+                        if (path):
+                        #Displaying extracted string literals
+                            print(f"{os.path.abspath(file_path)} \t {string_founder}")
+                        else:
+                            print(f"{string_founded}")
                        
 
 
