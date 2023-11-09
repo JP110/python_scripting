@@ -9,7 +9,6 @@ def str_extract_directory(dir, suffix, all , path):
     Browse recursively goes through all the files in a hierarchy and apply str_extract_files on every files
     Return all the literal strings (surrounded by " or ’) that these files contain.
     '''
-    string_founds  = []
     for pathdir, _, files in os.walk(dir):
         for file in files:
             # Test if the options suffix is asked and check if the file match with this suffix
