@@ -4,56 +4,34 @@ import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException,MissingSchema
 
-def get_links(url):
-    try:
-        response = requests.get(url)
-    except MissingSchema as e:
-        print(f"Invalid URL {url}")
-        return []
-    except Exception as e:
-        print(e)
-        return []
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
-        links = []
-        for link in soup.find_all('a', href=True):
-            href_value = link.get('href')
-            links.append(href_value)
-        return links
-    else:
-        return []
 
-def check_recursive(current_url, depth, checked_links):
-    if depth == 0:
-        return
-    try:
-        links = get_links(current_url)
-        for link in links:
-            if link in checked_links:
-                continue
-            absolute_link = urljoin(current_url, link)
-            if absolute_link.startswith(("http://", "https://")) and absolute_link not in checked_links:
-                try:
-                    response = requests.head(absolute_link)
-                    if response.status_code == 302 or response.status_code == 301:
-                        new_location = response.headers['Location']
-                        response = requests.head(new_location)
-                    if response.status_code == 404:
-                        print(f"Broken link (404): {absolute_link}")
-                    elif response.status_code != 200:
-                        print(f"Unexpected status code {response.status_code} for link: {absolute_link}")
-                except RequestException as e:
-                    # HTTP page return an exception if they are broken
-                    print(f"Broken link (404): {absolute_link}")
-                checked_links.add(absolute_link)
-                check_recursive(absolute_link, depth - 1, checked_links)
-    except Exception as e:
-        print(f"Invalid URL {current_url}: {e}")
+def check_recursive(current_url, depth, checked_urls):
+    if depth >= 0 and not current_url in checked_urls:
+        checked_urls.add(current_url)
+        try:
+            response = requests.get(current_url)
+            if response.status_code == 200:
+                content_html = BeautifulSoup(response.text, 'html.parser')
+                for link in content_html.find_all('a', href=True):
+                    href_value = link.get('href')
+                    absolute_link = urljoin(current_url, href_value)
+                    check_recursive(absolute_link, depth - 1, checked_urls)
+            elif response.status_code == 404:
+                print(f"Broken link (404): {current_url}")
+            else:
+                print(f"Unexpected status code {response.status_code} for link: {current_url}")
+        except MissingSchema as e:
+            print(f"Invalid URL {current_url}")     
+        except RequestException as e:
+            # HTTP page return an exception if they are broken
+            print(f"Broken link (404): {current_url}")
+        except Exception as e:
+            print(f"Invalid URL {current_url}: {e}")
 
 def check_links(url, depth):
-    checked_links = set()
-    check_recursive(url, depth, checked_links)
-    print(f"Number of links checked : {len(checked_links)}")
+    checked_urls = set()
+    check_recursive(url, depth, checked_urls)
+    print(f"Number of links checked : {len(checked_urls)}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
